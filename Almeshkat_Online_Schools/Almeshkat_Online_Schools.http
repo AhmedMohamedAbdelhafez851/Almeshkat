@@ -1,0 +1,6 @@
+@Almeshkat_Online_Schools_HostAddress = http://localhost:5162
+
+GET {{Almeshkat_Online_Schools_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
