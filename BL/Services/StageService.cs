@@ -1,23 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BL.Services
 {
-    public interface IStageService
-    {
-        Task<StageDto> GetByIdAsync(int id);
-        Task<IEnumerable<StageDto>> GetAllAsync();
-        Task CreateAsync(StageDto StageDto, string createdBy);
-        Task<bool> UpdateAsync(StageDto StageDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class StageService : IStageService
     {
         private readonly ApplicationDbContext _context;
@@ -35,7 +23,7 @@ namespace BL.Services
                 {
                     StageId = d.StageId,
                     StageName = d.StageName,
-                   
+
                 })
                 .ToListAsync();
         }

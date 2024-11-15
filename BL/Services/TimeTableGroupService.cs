@@ -1,23 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BL.Services
 {
-    public interface ITimeTableGroupService
-    {
-        Task<TimeTableGroupDto> GetByIdAsync(int id);
-        Task<IEnumerable<TimeTableGroupDto>> GetAllAsync();
-        Task CreateAsync(TimeTableGroupDto timeTableGroupDto, string createdBy);
-        Task<bool> UpdateAsync(TimeTableGroupDto timeTableGroupDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class TimeTableGroupService : ITimeTableGroupService
     {
         private readonly ApplicationDbContext _context;

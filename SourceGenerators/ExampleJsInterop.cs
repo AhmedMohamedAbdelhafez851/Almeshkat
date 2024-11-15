@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 
-namespace Domains
+namespace SourceGenerators
 {
     // This class provides an example of how JavaScript functionality can be wrapped
     // in a .NET class for easy consumption. The associated JavaScript module is
@@ -16,7 +16,7 @@ namespace Domains
         public ExampleJsInterop(IJSRuntime jsRuntime)
         {
             moduleTask = new(() => jsRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/Domains/exampleJsInterop.js").AsTask());
+                "import", "./_content/SourceGenerators/exampleJsInterop.js").AsTask());
         }
 
         public async ValueTask<string> Prompt(string message)

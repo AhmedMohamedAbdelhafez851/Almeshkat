@@ -1,19 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
 {
-    public interface IYearService
-    {
-        Task<IEnumerable<YearDto>> GetAllAsync();
-        Task<YearDto> GetByIdAsync(int id);
-        Task CreateAsync(YearDto yearDto, string createdBy);
-        Task<bool> UpdateAsync(YearDto yearDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class YearService : IYearService
     {
         private readonly ApplicationDbContext _context;

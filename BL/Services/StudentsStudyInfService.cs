@@ -1,23 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 namespace BL.Services
 {
-    public interface IStudentsStudyInfService
-    {
-        Task<StudentStudyInfDto> GetByIdAsync(int id);
-        Task<IEnumerable<StudentStudyInfDto>> GetAllAsync();
-        Task CreateAsync(StudentStudyInfDto StudentsStudyInfDto, string createdBy);
-        Task<bool> UpdateAsync(StudentStudyInfDto StudentsStudyInfDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class StudentsStudyInfService : IStudentsStudyInfService
     {
         private readonly ApplicationDbContext _context;
@@ -38,8 +26,8 @@ namespace BL.Services
                 {
                     Id = s.Id,
                     UserId = s.UserId,
-                    UserName = s.User!.FullName,          
-                    YearName = s.Year!.YearName,          
+                    UserName = s.User!.FullName,
+                    YearName = s.Year!.YearName,
                     SubStageName = s.SubStage!.SubStageName
                 })
                 .ToListAsync();

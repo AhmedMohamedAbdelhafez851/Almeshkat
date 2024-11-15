@@ -1,5 +1,5 @@
 ﻿using Almeshkat_Online_Schools.Utilities;
-using BL.Services;
+using BL.Interfaces;
 using Domains.Dtos;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,22 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BL.Services
 {
-    public interface ITermService
-    {
-        Task<IEnumerable<TermDto>> GetAllAsync();
-        Task<TermDto> GetByIdAsync(int id);
-        Task CreateAsync(TermDto TermDto, string createdBy);
-        Task<bool> UpdateAsync(TermDto TermDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class TermService : ITermService
     {
         private readonly ApplicationDbContext _context;
@@ -37,7 +26,7 @@ namespace BL.Services
                     TermName = d.TermName,
                     YearId = d.YearId,
                     YearName = d.Year!.YearName,
-                  
+
                     //IsRawCase = !d.IsDeleted // Uncomment if "raw" status is needed
                 })
                 .ToListAsync();
@@ -57,7 +46,7 @@ namespace BL.Services
                 TermName = Term.TermName,
                 YearId = Term.YearId,
                 YearName = Term.Year!.YearName,
-                
+
 
                 //IsRawCase = !Term.IsDeleted // Uncomment if "raw" status is needed
             };

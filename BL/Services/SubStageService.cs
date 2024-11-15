@@ -1,21 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BL.Services
 {
-    public interface ISubStageService
-    {
-        Task<IEnumerable<SubStageDto>> GetAllAsync();
-        Task<SubStageDto> GetByIdAsync(int id);
-        Task CreateAsync(SubStageDto SubStageDto, string createdBy);
-        Task<bool> UpdateAsync(SubStageDto SubStageDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class SubStageService : ISubStageService
     {
         private readonly ApplicationDbContext _context;
@@ -56,8 +46,8 @@ namespace BL.Services
                 SubStageName = SubStage.SubStageName,
                 StageId = SubStage.StageId,
                 StageName = SubStage?.Stage?.StageName,
-                DepartmentId = SubStage!.Department!.DepartmentId ,
-                DepartmentName = SubStage.Department.DepartmentName 
+                DepartmentId = SubStage!.Department!.DepartmentId,
+                DepartmentName = SubStage.Department.DepartmentName
             };
 
         }
@@ -86,7 +76,7 @@ namespace BL.Services
             existingSubStage.UpdatedBy = updatedBy;
             existingSubStage.UpdatedAt = DateTime.Now;
             existingSubStage.StageId = SubStageDto.StageId;
-            existingSubStage.DepartmentId  = SubStageDto.DepartmentId;  
+            existingSubStage.DepartmentId = SubStageDto.DepartmentId;
 
             await _context.SaveChangesAsync();
             return true;

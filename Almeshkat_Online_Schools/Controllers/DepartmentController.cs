@@ -1,14 +1,12 @@
 ﻿using Almeshkat_Online_Schools.Utilities;
-using BL.Services;
+using BL.Interfaces;
 using Domains.Dtos;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace Almeshkat_Online_Schools.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   // [Authorize]
     public class DepartmentController : ControllerBase
     {
         private readonly IDepartmentService _departmentService;
@@ -29,10 +27,9 @@ namespace Almeshkat_Online_Schools.Controllers
         public async Task<ActionResult<ApiResponse<DepartmentDto>>> GetById(int id)
         {
             var department = await _departmentService.GetByIdAsync(id);
-            if (department == null)
-                return NotFound(ApiResponseFactory.Error<DepartmentDto>(ApiMessages.NotFound));
-
-            return Ok(ApiResponseFactory.Success(department));
+            return department == null
+                ? NotFound(ApiResponseFactory.Error<DepartmentDto>(ApiMessages.NotFound))
+                : Ok(ApiResponseFactory.Success(department));
         }
 
         [HttpPost]
@@ -43,36 +40,31 @@ namespace Almeshkat_Online_Schools.Controllers
 
             var createdBy = User.GetUserId();
             await _departmentService.CreateAsync(departmentDto, createdBy);
-
             return Ok(ApiResponseFactory.SuccessMessage(ApiMessages.Created));
         }
 
         [HttpPut("{id:int}")]
         public async Task<ActionResult<ApiResponse<string>>> Update(int id, [FromBody] DepartmentDto departmentDto)
         {
-            if (id != departmentDto.DepartmentId)
-                return BadRequest(ApiResponseFactory.Error<string>(ApiMessages.GetMismatchMessage("معرف القسم")));
-
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponseFactory.ValidationError(ApiMessages.ValidationError));
 
+            departmentDto.DepartmentId = id; // Ensure ID consistency
             var updatedBy = User.GetUserId();
-            var result = await _departmentService.UpdateAsync(departmentDto, updatedBy);
-            if (!result)
-                return NotFound(ApiResponseFactory.Error<string>(ApiMessages.NotFound));
-
-            return Ok(ApiResponseFactory.SuccessMessage(ApiMessages.Updated));
+            var updateResult = await _departmentService.UpdateAsync(departmentDto, updatedBy);
+            return updateResult
+                ? Ok(ApiResponseFactory.SuccessMessage(ApiMessages.Updated))
+                : NotFound(ApiResponseFactory.Error<string>(ApiMessages.NotFound));
         }
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
         {
             var deletedBy = User.GetUserId();
-            var result = await _departmentService.DeleteAsync(id, deletedBy);
-            if (!result)
-                return NotFound(ApiResponseFactory.Error<string>(ApiMessages.NotFound));
-
-            return Ok(ApiResponseFactory.SuccessMessage(ApiMessages.Deleted));
+            var deleteResult = await _departmentService.DeleteAsync(id, deletedBy);
+            return deleteResult
+                ? Ok(ApiResponseFactory.SuccessMessage(ApiMessages.Deleted))
+                : NotFound(ApiResponseFactory.Error<string>(ApiMessages.NotFound));
         }
     }
 }

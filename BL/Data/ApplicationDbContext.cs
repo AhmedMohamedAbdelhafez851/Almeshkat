@@ -75,10 +75,10 @@ namespace BL.Data
 
 
             modelBuilder.Entity<TimeTable>()
-        .HasOne(t => t.SubStage)
-        .WithMany()
-        .HasForeignKey(t => t.SubStageId)
-        .OnDelete(DeleteBehavior.Cascade); // Keep cascade if this is intended
+                .HasOne(t => t.SubStage)
+                .WithMany()
+                .HasForeignKey(t => t.SubStageId)
+                .OnDelete(DeleteBehavior.Cascade); // Keep cascade if this is intended
 
             modelBuilder.Entity<TimeTable>()
                 .HasOne(t => t.Subject)

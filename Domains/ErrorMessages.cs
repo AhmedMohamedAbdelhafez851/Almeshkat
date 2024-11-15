@@ -6,10 +6,10 @@
         public const string Required = "هذا الحقل مطلوب";
 
         // Length and Size
-        public const string MaxLength = "لا يمكن أن يتجاوز {0} حرف";
-        public const string MinLength = "يجب أن يكون على الأقل {0} حرف";
+        public const string MaxLength = "لا يمكن أن يتجاوز 100 حرف.";
+        public const string MinLength = "يجب أن يكون على الأقل 3 حروف";
         public const string ExactLength = "يجب أن يكون {0} حرفًا بالضبط";
-        public const string StringLengthRange = "يجب أن يكون بين {0} و {1} حرفًا";
+        public const string StringLengthRange = "يجب أن يكون بين 3 و 100 من الحروف";
         public const string PasswordLength = "يجب أن تكون كلمة المرور بين 8 و 100 حرف";
 
 

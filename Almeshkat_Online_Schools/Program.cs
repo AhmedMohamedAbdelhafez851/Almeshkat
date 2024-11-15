@@ -1,4 +1,3 @@
-using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -8,8 +7,15 @@ using System.Text;
 using Almeshkat_Online_Schools.Utilities;
 using BL.Data;
 using Domains;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog (Encapsulated in SerilogConfig)
+SerilogConfig.ConfigureLogger();
+
+// Use Serilog for logging
+builder.Host.UseSerilog();
 
 // Configure Autofac as the DI container
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
@@ -62,12 +68,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Register generic repository and unit of work
-//builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-//builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-// Register services and interceptors
-builder.Services.RegisterCustomServices(); // Register all services and interceptors
+// Register custom services and interceptors
+builder.Services.RegisterCustomServices();
 
 // Add Controllers
 builder.Services.AddControllers();
@@ -77,7 +79,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("")
+        policy.WithOrigins("") // Add specific origins as needed
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -90,10 +92,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Add Error Handling Middleware
 app.UseMiddleware<ErrorHandlerMiddleware>();
-
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 
 // Middleware Pipeline
 if (app.Environment.IsDevelopment())
@@ -109,4 +109,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.Run();
+
+// Ensure that Serilog is closed and flushed at the end of the application’s lifecycle
+try
+{
+    Log.Information("Starting the application...");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application start-up failed");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

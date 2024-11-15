@@ -1,19 +1,10 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
-using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
 {
-    public interface IStudentService
-    {
-        Task<StudentDto> GetByIdAsync(int id);
-        Task<IEnumerable<StudentDto>> GetAllAsync();
-        Task CreateAsync(StudentDto studentDto, string createdBy);
-        Task<bool> UpdateAsync(StudentDto studentDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class StudentService : IStudentService
     {
         private readonly ApplicationDbContext _context;
@@ -33,8 +24,8 @@ namespace BL.Services
                 {
                     StudentId = d.StudentId,
                     UserId = d.UserId,
-                    FullName = d.User!.FullName ,      // Null check for User
-                    Email = d.User.Email ,            // Null check for User
+                    FullName = d.User!.FullName,      // Null check for User
+                    Email = d.User.Email,            // Null check for User
                     SubStageId = d.SubStageId,
                     SubStageName = d.SubStage != null ? d.SubStage.SubStageName : null // Null check for SubStage
                 })

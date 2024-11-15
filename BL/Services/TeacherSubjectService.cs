@@ -1,18 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BL.Services
 {
-    public interface ITeacherSubjectService
-    {
-        Task<IEnumerable<TeacherSubjectDto>> GetAllAsync();
-        Task<TeacherSubjectDto> GetByIdAsync(int teacherId, int subjectId);
-        Task CreateAsync(TeacherSubjectDto teacherSubjectDto, string createdBy);
-        Task<bool> UpdateAsync(TeacherSubjectDto teacherSubjectDto, string updatedBy);
-        Task<bool> DeleteAsync(int teacherId, int subjectId, string deletedBy);
-    }
     public class TeacherSubjectService : ITeacherSubjectService
     {
         private readonly ApplicationDbContext _context;
@@ -30,11 +23,11 @@ namespace BL.Services
 
                 .Select(ts => new TeacherSubjectDto
                 {
-                    Id = ts.Id  , 
+                    Id = ts.Id,
                     TeacherId = ts.TeacherId,
-                    StaSubjId = ts.StaSubjId , 
-                    TeacherName = ts.Teacher!.User!.FullName , 
-                    SubjectName = ts.StageSubject!.Subject!.SubjectName, 
+                    StaSubjId = ts.StaSubjId,
+                    TeacherName = ts.Teacher!.User!.FullName,
+                    SubjectName = ts.StageSubject!.Subject!.SubjectName,
                     // Additional properties if any
                 })
                 .ToListAsync();
@@ -49,7 +42,7 @@ namespace BL.Services
 
             return new TeacherSubjectDto
             {
-                Id = teacherSubject.Id ,    
+                Id = teacherSubject.Id,
                 TeacherId = teacherSubject.TeacherId,
                 StaSubjId = teacherSubject.StaSubjId,
 
@@ -63,8 +56,8 @@ namespace BL.Services
             {
                 TeacherId = teacherSubjectDto.TeacherId,
                 StaSubjId = teacherSubjectDto.StaSubjId,
-                CreatedBy = createdBy  , 
-                CreatedAt = DateTime.Now,   
+                CreatedBy = createdBy,
+                CreatedAt = DateTime.Now,
             };
 
             await _context.TeacherSubjects.AddAsync(teacherSubject);

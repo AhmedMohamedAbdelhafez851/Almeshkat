@@ -1,22 +1,11 @@
 ﻿using BL.Data;
+using BL.Interfaces;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BL.Services
 {
-    public interface ISubjectService
-    {
-        Task<IEnumerable<SubjectDto>> GetAllAsync();
-        Task<SubjectDto> GetByIdAsync(int id);
-        Task<SubjectDto> CreateAsync(SubjectDto subjectDto , string createdBy);
-        Task<bool> UpdateAsync(SubjectDto subjecttDto, string updatedBy);
-        Task<bool> DeleteAsync(int id, string deletedBy);
-    }
-
     public class SubjectService : ISubjectService
     {
         private readonly ApplicationDbContext _context;
@@ -53,7 +42,7 @@ namespace BL.Services
         {
             var subject = new Subject
             {
-                SubjectName = subjectDto.SubjectName , 
+                SubjectName = subjectDto.SubjectName,
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.Now
             };
