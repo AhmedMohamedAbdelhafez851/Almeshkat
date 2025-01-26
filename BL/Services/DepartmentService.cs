@@ -1,8 +1,10 @@
-﻿using BL.Interfaces;
+﻿using BL.Healper;
+using BL.Interfaces;
 using BL.Specifications;
 using Domains.Dtos;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace BL.Services
 {
@@ -15,11 +17,16 @@ namespace BL.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<DepartmentDto>> GetAllAsync()
+        [Cacheable("Departments_All_{pageNumber}_{pageSize}", 600)] // Cache for 10 minutes
+        public async Task<IEnumerable<DepartmentDto>> GetAllAsync(int? pageNumber = null, int? pageSize = null)
         {
             var specification = new ActiveSpecification();
-            var departments = await _unitOfWork.DepartmentRepository
-                .GetBySpecificationAsync(specification, query => query.Include(d => d.Year));
+            var departments = await _unitOfWork.DepartmentRepository.GetPagedOrAllAsync(
+                specification,
+                query => query.Include(d => d.Year).AsNoTracking(),
+                pageNumber,
+                pageSize
+            );
 
             return departments.Select(MapToDto);
         }
@@ -27,14 +34,13 @@ namespace BL.Services
         public async Task<DepartmentDto?> GetByIdAsync(int id)
         {
             var department = await _unitOfWork.DepartmentRepository
-                .GetByIdAsync(id, query => query.Include(d => d.Year));
+                .GetByIdAsync(id, query => query.AsNoTracking().Include(d => d.Year));
 
             return department == null ? null : MapToDto(department);
         }
 
         public async Task CreateAsync(DepartmentDto departmentDto, string createdBy)
         {
-
             if (!await YearExistsAsync(departmentDto.YearId))
             {
                 throw new ArgumentException("Specified year does not exist or is deleted.");
@@ -52,6 +58,7 @@ namespace BL.Services
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.Now
             };
+
             await _unitOfWork.DepartmentRepository.AddAsync(department);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -59,18 +66,13 @@ namespace BL.Services
         public async Task<bool> UpdateAsync(DepartmentDto departmentDto, string updatedBy)
         {
             var department = await _unitOfWork.DepartmentRepository.GetByIdAsync(departmentDto.DepartmentId);
-            if (department == null)
-            {
-                return false;
-            }
+            if (department == null) return false;
 
-            // Check if Year exists
             if (!await YearExistsAsync(departmentDto.YearId))
             {
                 throw new ArgumentException("Specified year does not exist or is deleted.");
             }
 
-            // Check for duplicate Department name
             if (await IsDuplicateDepartmentNameAsync(departmentDto, department))
             {
                 throw new ArgumentException("Department name already exists.");
@@ -80,6 +82,7 @@ namespace BL.Services
             department.YearId = departmentDto.YearId;
             department.UpdatedBy = updatedBy;
             department.UpdatedAt = DateTime.Now;
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -87,19 +90,30 @@ namespace BL.Services
         public async Task<bool> DeleteAsync(int id, string deletedBy)
         {
             var department = await _unitOfWork.DepartmentRepository.GetByIdAsync(id);
-            if (department == null)
-            {
-                return false;
-            }
-            department.IsDeleted = true;
-            department.DeletedBy = deletedBy;
-            department.DeletedAt = DateTime.Now;
+            if (department == null) return false;
+
+            SoftDeleteHelper.ApplySoftDelete(department, deletedBy);
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
-        // Other methods like UpdateAsync, DeleteAsync with logging...
+
+        //[Cacheable("Departments_Paged_{pageNumber}_{pageSize}", 600)] // Cache for 10 minutes
+        //public async Task<IEnumerable<DepartmentDto>> GetPagedAsync(int pageNumber, int pageSize)
+        //{
+        //    var specification = new ActiveSpecification();
+        //    var departments = await _unitOfWork.DepartmentRepository.GetPagedAsync(
+        //        specification,
+        //        query => query.Include(d => d.Year),
+        //        pageNumber,
+        //        pageSize
+        //    );
+
+        //    return departments.Select(MapToDto);
+        //}
+
         private static DepartmentDto MapToDto(Department department) =>
-            new DepartmentDto
+            new()
             {
                 DepartmentId = department.DepartmentId,
                 DepartmentName = department.DepartmentName,
@@ -120,6 +134,6 @@ namespace BL.Services
                 !d.IsDeleted);
         }
 
-      
+        
     }
 }

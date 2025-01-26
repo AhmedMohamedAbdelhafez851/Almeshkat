@@ -11,7 +11,9 @@ namespace BL.Interfaces
         IRepository<Year> YearRepository { get; }
         Task<bool> AnyAsync<T>(Expression<Func<T, bool>> predicate) where T : class;
 
-
         Task SaveChangesAsync();
+
+        void Dispose(); // Ensure proper resource cleanup
+
     }
 }

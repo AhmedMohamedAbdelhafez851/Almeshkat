@@ -20,6 +20,10 @@ namespace Almeshkat_Online_Schools.Controllers
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<SchoolDto>>>> GetAll()
         {
+            // Processing in memory 
+            // Linq to object 
+            // use in small scal 
+
             var Schools = await _SchoolService.GetAllAsync();
             return Ok(ApiResponseFactory.Success(Schools));
         }

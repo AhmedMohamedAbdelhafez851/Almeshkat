@@ -69,6 +69,42 @@ namespace BL.Data
         private IQueryable<T> ApplySpecification(ISpecification<T> specification) =>
             _context.Set<T>().Where(specification.Criteria);
 
-      
+        public async Task<IEnumerable<T>> GetPagedAsync(
+       ISpecification<T> specification,
+       Func<IQueryable<T>, IQueryable<T>>? include = null,
+       int pageNumber = 1, int pageSize = 10)
+        {
+            var query = _context.Set<T>().Where(specification.Criteria);
+
+            if (include != null)
+                query = include(query);
+
+            return await query
+                .AsNoTracking()
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        
+
+        public async Task<IEnumerable<T>> GetPagedOrAllAsync(
+            ISpecification<T> specification,
+            Func<IQueryable<T>, IQueryable<T>>? include = null,
+            int? pageNumber = null,
+            int? pageSize = null)
+        {
+            var query = ApplySpecification(specification);
+
+            if (include != null)
+                query = include(query);
+
+            if (pageNumber.HasValue && pageSize.HasValue)
+            {
+                query = query.Skip((pageNumber.Value - 1) * pageSize.Value).Take(pageSize.Value);
+            }
+
+            return await query.AsNoTracking().ToListAsync();
+        }
     }
 }

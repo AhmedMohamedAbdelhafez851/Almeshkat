@@ -1,13 +1,12 @@
 ﻿using System.Linq.Expressions;
 using System.Threading.Tasks;
-using BL.Data;
 using BL.Interfaces;
 using Domains.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BL.Services
+namespace BL.Data
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApplicationDbContext _context;
         public IRepository<Department> DepartmentRepository { get; }
@@ -26,5 +25,10 @@ namespace BL.Services
         }
 
         public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
     }
 }

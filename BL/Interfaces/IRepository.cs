@@ -18,5 +18,18 @@ namespace BL.Interfaces
 
         Task SaveChangesAsync();
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+
+        // Task<IEnumerable<T>> GetPagedAsync(ISpecification<T> specification,
+        //Func<IQueryable<T>, IQueryable<T>>? include = null,
+        //int pageNumber = 1, int pageSize = 10);
+
+        Task<IEnumerable<T>> GetPagedOrAllAsync(
+           ISpecification<T> specification,
+           Func<IQueryable<T>, IQueryable<T>>? include = null,
+           int? pageNumber = null,
+           int? pageSize = null);
     }
+
+
 }
+

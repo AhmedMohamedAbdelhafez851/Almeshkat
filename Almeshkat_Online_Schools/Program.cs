@@ -1,6 +1,7 @@
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -8,28 +9,26 @@ using Almeshkat_Online_Schools.Utilities;
 using BL.Data;
 using Domains;
 using Serilog;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog (Encapsulated in SerilogConfig)
+// Configure Serilog
 SerilogConfig.ConfigureLogger();
-
-// Use Serilog for logging
 builder.Host.UseSerilog();
 
-// Configure Autofac as the DI container
+// Configure Autofac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
 // Configure services
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Identity services
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Register Authentication and JWT services
+// Add Authentication and JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,31 +46,14 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnTokenValidated = context =>
-        {
-            var userPrincipal = context.Principal;
-            if (userPrincipal != null)
-            {
-                var identity = (System.Security.Claims.ClaimsIdentity)userPrincipal.Identity!;
-                identity.AddClaim(new System.Security.Claims.Claim(
-                    System.Security.Claims.ClaimTypes.Name,
-                    userPrincipal.FindFirst("name")?.Value ?? ""
-                ));
-            }
-            return Task.CompletedTask;
-        }
-    };
 });
 
 builder.Services.AddAuthorization();
 
-// Register custom services and interceptors
+// Register custom services
 builder.Services.RegisterCustomServices();
 
-// Add Controllers
+// Add controllers
 builder.Services.AddControllers();
 
 // Configure CORS
@@ -79,7 +61,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("") // Add specific origins as needed
+        policy.WithOrigins("http://localhost:4200") // Replace with your frontend origin
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -90,12 +72,29 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("FixedPolicy", policy =>
+    {
+        policy.PermitLimit = 5; // Allow up to 5 requests
+        policy.Window = TimeSpan.FromSeconds(10); // Within a 10-second window
+        policy.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        policy.QueueLimit = 2; // Allow up to 2 requests to wait in the queue
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        logger.LogWarning("Request rejected due to rate limiting. Path: {Path}", context.HttpContext.Request.Path);
+        context.HttpContext.Response.StatusCode = 429; // Too Many Requests
+        await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", cancellationToken);
+    };
+});
+
 var app = builder.Build();
 
-// Add Error Handling Middleware
-app.UseMiddleware<ErrorHandlerMiddleware>();
-
-// Middleware Pipeline
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -105,12 +104,18 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigin");
 
+// Enable rate limiting globally except for excluded routes
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+// Map controllers
+app.MapControllers(); // No explicit route exclusion needed; handled by `DisableRateLimiting`
 
-// Ensure that Serilog is closed and flushed at the end of the application’s lifecycle
+// Error handling middleware
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
 try
 {
     Log.Information("Starting the application...");

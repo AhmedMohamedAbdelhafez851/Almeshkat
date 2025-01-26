@@ -1,4 +1,5 @@
 ﻿using BL.Data;
+using BL.Healper;
 using BL.Interfaces;
 using BL.Services;
 using Castle.DynamicProxy;
@@ -20,38 +21,45 @@ namespace Almeshkat_Online_Schools.Utilities
             // Register custom logging service
             services.AddScoped(typeof(ILoggingService<>), typeof(LoggingService<>));
 
+            // Register IHttpContextAccessor and MemoryCache
             services.AddHttpContextAccessor();
+            services.AddMemoryCache();
 
+            // Register interceptors
+            services.AddSingleton<CachingInterceptor>();
+            services.AddSingleton<LoggingInterceptor>();
 
-            // Set up Castle Proxy Generator and Logging Interceptor
+            // Set up Castle Proxy Generator
             var proxyGenerator = new ProxyGenerator();
             services.AddSingleton(proxyGenerator);
-            services.AddSingleton<LoggingInterceptor>();
 
             // Automatically register and proxy all services ending with "Service"
             var assembly = typeof(ApplicationDbContext).Assembly; // Adjust this to the assembly containing your services
-
             var serviceTypes = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && t.Name.EndsWith("Service"));
 
             foreach (var implementationType in serviceTypes)
             {
-                // Find an interface with the same name as the class prefixed with "I"
+                // Find the interface matching the class (e.g., IClassService for ClassService)
                 var interfaceType = implementationType.GetInterface($"I{implementationType.Name}");
 
                 if (interfaceType != null)
                 {
-                    // Register the service with proxy interception
                     services.AddScoped(interfaceType, provider =>
                     {
                         var implementation = ActivatorUtilities.CreateInstance(provider, implementationType);
-                        var interceptor = provider.GetRequiredService<LoggingInterceptor>();
-                        return proxyGenerator.CreateInterfaceProxyWithTarget(interfaceType, implementation, interceptor);
+                        var loggingInterceptor = provider.GetRequiredService<LoggingInterceptor>();
+                        var cachingInterceptor = provider.GetRequiredService<CachingInterceptor>();
+                        return proxyGenerator.CreateInterfaceProxyWithTarget(
+                            interfaceType,
+                            implementation,
+                            loggingInterceptor,
+                            cachingInterceptor
+                        );
                     });
                 }
                 else
                 {
-                    // Register without proxy if no interface is found
                     services.AddScoped(implementationType);
                 }
             }

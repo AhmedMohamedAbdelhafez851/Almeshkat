@@ -10,19 +10,5 @@ namespace BL.Specifications
         }
     }
 
-    //public class DepartmentByNameSpecification : BaseSpecification<Department>
-    //{
-    //    public DepartmentByNameSpecification(string departmentName)
-    //        : base(d => d.DepartmentName == departmentName && !d.IsDeleted)
-    //    {
-    //    }
-    //}
-
-    //public class DepartmentByIdSpecification : BaseSpecification<Department>
-    //{
-    //    public DepartmentByIdSpecification(int departmentId)
-    //        : base(d => d.DepartmentId == departmentId && !d.IsDeleted)
-    //    {
-    //    }
-    //}
+   
 }

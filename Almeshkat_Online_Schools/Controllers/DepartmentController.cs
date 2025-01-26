@@ -1,12 +1,15 @@
 ﻿using Almeshkat_Online_Schools.Utilities;
+using Autofac.Core;
 using BL.Interfaces;
 using Domains.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Almeshkat_Online_Schools.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [EnableRateLimiting("FixedPolicy")]
     public class DepartmentController : ControllerBase
     {
         private readonly IDepartmentService _departmentService;
@@ -17,9 +20,10 @@ namespace Almeshkat_Online_Schools.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<DepartmentDto>>>> GetAll()
+        [DisableRateLimiting] // Disable rate limiting for this endpoint
+        public async Task<ActionResult<ApiResponse<IEnumerable<DepartmentDto>>>> GetAll(int? pageNumber = null, int? pageSize = null)
         {
-            var departments = await _departmentService.GetAllAsync();
+            var departments = await _departmentService.GetAllAsync(pageNumber, pageSize);
             return Ok(ApiResponseFactory.Success(departments));
         }
 
